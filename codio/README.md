@@ -23,8 +23,8 @@ TODO: Add screenshot/animated GIF of process
 
 - [ ] 8. Open the Jupyter Notebook file (`.ipynb`) for the activity using your preferred development environment:
   - **Open in JupyterLab**: Right-click on the `.ipynb` file and select "Open with Jupyter Notebook".
-  - **Open in VS Code**: Right-click on the `.ipynb` file and select "Open With" and find "Visual Studio Code".
-  - *Note*. You may need to select "Open with Other Application..." and search for your desired application if you do not see it in the initial list.
+  - **Open in VS Code**: Right-click on the `.ipynb` file and select "Open with Visual Studio Code".
+  - *Note*. You may need to select "Open With >" and then "Open with Other Application..." and search for your desired application if you do not see it in the initial list.
 TODO: Add screenshot/animated GIF of process
 
 ## Troubleshooting

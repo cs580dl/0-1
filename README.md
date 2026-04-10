@@ -19,7 +19,7 @@ Follow the guide for your operating platform to set up your deep learning enviro
 
 | # | Platform | Processor | Setup Instructions | Status |
 |:-:|----------|-----------|-------------------|--------|
-| 1 | Codio    | CPU-only  | [codio/README.md](codio/README.md) | under construction |
+| 1 | Codio    | CPU-only  | [codio/README.md](codio/README.md) | beta testing with first cohort |
 | 2 | Win+WSL  | CPU+GPU   | [wsl/README.md](wsl/README.md)     | under construction |
 | 3 | Kaggle / Colab  | CPU+GPU | [web/README.md](web/README.md) | under construction |
 | 4 | Linux    | CPU+GPU   | [nix/README.md](nix/README.md)     | not started |

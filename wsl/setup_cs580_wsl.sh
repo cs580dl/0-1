@@ -19,6 +19,7 @@ Features
 - Selects CPU or GPU dependency set automatically
 - Installs specified Python version and common development tools
 - Configures Git global username and email
+- Accepts Git name/email as optional command-line arguments
 - Creates a virtual environment in `~/cs580/.venv`
 - Uses `cs580` as the displayed virtual environment prompt name
 - Installs dependencies from remote requirements files
@@ -45,6 +46,9 @@ Usage
 2. Run the script as a regular user:
    ./setup_cs580.sh
 
+3. Optional: provide Git name and email as arguments:
+   ./setup_cs580.sh --name "Your Name" --email "you@example.com"
+
 Do NOT run this script with sudo.
 
 Configuration
@@ -59,19 +63,20 @@ Configuration
 Behavior
 --------
 1. Verifies script is not run as root
-2. Confirms sudo access
-3. Detects GPU availability once and stores the result
-4. Updates system packages and installs dependencies
-5. Installs Python and pip
-6. Prompts user for Git configuration
-7. Creates `~/cs580` and clones starter repo `0-0`
-8. Creates a virtual environment in `~/cs580/.venv`
-9. Installs:
-   - CPU path: PyTorch (CPU-only) via custom index + CPU requirements
-   - GPU path: All dependencies from GPU requirements file
-10. Configures `direnv` to activate the venv automatically in `~/cs580`
-11. Configures VS Code profile, installs course extensions, and opens `~/cs580`
-12. Verifies installation via import test and GPU-aware checks
+2. Parses optional command-line arguments
+3. Confirms sudo access
+4. Detects GPU availability once and stores the result
+5. Updates system packages and installs dependencies
+6. Installs Python and pip
+7. Prompts user for Git configuration if not provided by CLI
+8. Creates `~/cs580` and clones starter repo `0-0`
+9. Creates a virtual environment in `~/cs580/.venv`
+10. Installs:
+    - CPU path: PyTorch (CPU-only) via custom index + CPU requirements
+    - GPU path: All dependencies from GPU requirements file
+11. Configures `direnv` to activate the venv automatically in `~/cs580`
+12. Configures VS Code profile, installs course extensions, and opens `~/cs580`
+13. Verifies installation via import test and GPU-aware checks
 
 Assumptions
 -----------
@@ -114,8 +119,49 @@ GPU_REQS="requirements_gpu.txt"
 # === Script State ===
 HAS_GPU="false"
 REQS_FILE=""
+GIT_NAME=""
+GIT_EMAIL=""
 
 # === Define Script Functions ===
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --name)
+        if [[ $# -lt 2 ]]; then
+          echo "❌ Missing value for --name"
+          exit 1
+        fi
+        GIT_NAME="$2"
+        shift 2
+        ;;
+      --email)
+        if [[ $# -lt 2 ]]; then
+          echo "❌ Missing value for --email"
+          exit 1
+        fi
+        GIT_EMAIL="$2"
+        shift 2
+        ;;
+      -h|--help)
+        echo "Usage: ./setup_cs580.sh [--name \"Your Name\"] [--email \"you@example.com\"]"
+        exit 0
+        ;;
+      *)
+        if [[ -z "$GIT_NAME" ]]; then
+          GIT_NAME="$1"
+        elif [[ -z "$GIT_EMAIL" ]]; then
+          GIT_EMAIL="$1"
+        else
+          echo "❌ Unknown argument: $1"
+          echo "Usage: ./setup_cs580.sh [--name \"Your Name\"] [--email \"you@example.com\"]"
+          exit 1
+        fi
+        shift
+        ;;
+    esac
+  done
+}
+
 check_not_root() {
   if [[ "$(id -u)" -eq 0 ]]; then
     echo "⚠️  Please run this script as your normal user, not with sudo."
@@ -186,13 +232,27 @@ install_python() {
 configure_git() {
   echo ">> Configuring Git..."
 
-  read -r -p "Enter your GitHub user name: " github_name
-  read -r -p "Enter your GitHub email: " github_email
+  if [[ -z "$GIT_NAME" ]]; then
+    read -r -p "Enter your GitHub user name: " GIT_NAME
+  else
+    echo ">> Using provided GitHub user name: $GIT_NAME"
+  fi
 
-  git config --global user.name "$github_name"
-  git config --global user.email "$github_email"
+  if [[ -z "$GIT_EMAIL" ]]; then
+    read -r -p "Enter your GitHub email: " GIT_EMAIL
+  else
+    echo ">> Using provided GitHub email: $GIT_EMAIL"
+  fi
 
-  echo ">> Git configured with name: $github_name and email: $github_email"
+  if [[ -z "$GIT_NAME" || -z "$GIT_EMAIL" ]]; then
+    echo "❌ Git user name and email are required."
+    exit 1
+  fi
+
+  git config --global user.name "$GIT_NAME"
+  git config --global user.email "$GIT_EMAIL"
+
+  echo ">> Git configured with name: $GIT_NAME and email: $GIT_EMAIL"
 }
 
 create_dir_structure() {
@@ -355,6 +415,7 @@ print('CPU environment verification complete.')
 }
 
 # === Main Script Execution ===
+parse_args "$@"
 check_not_root
 check_sudo_access
 detect_gpu
@@ -373,5 +434,5 @@ verify_venv
 
 echo "✅ CS 580 WSL environment setup complete!"
 echo ">> Open a new terminal, or run: source ~/.bashrc"
-echo ">> Then cd ~/$CRS_ID to auto-activate the course virtual environment."
-echo ">> VS Code has been configured to use the '$CRS_ID' profile."
+echo ">> Then cd ~/$CRS_ID to auto-activate the CS 580 virtual environment."
+echo ">> VS Code has been configured to use the '$CRS_ID' profile for CS 580."

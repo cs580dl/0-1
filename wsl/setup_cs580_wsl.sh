@@ -21,11 +21,9 @@ Features
 - Configures Git global username and email
 - Accepts Git name/email as optional command-line arguments
 - Creates a virtual environment in `~/cs580/.venv`
-- Uses `cs580` as the displayed virtual environment prompt name
+- Uses `cs580` as the displayed virtual environment prompt name when activated manually
 - Installs dependencies from remote requirements files
 - Installs CPU-only PyTorch separately when no GPU is detected
-- Configures `direnv` to auto-activate/deactivate the venv in `~/cs580`
-- Configures the shell prompt to display `(cs580)` when the venv is active
 - Configures VS Code workspace settings and opens `~/cs580` using the `cs580` profile
 - Verifies installation by importing core libraries
 
@@ -74,10 +72,8 @@ Behavior
 10. Installs:
     - CPU path: PyTorch (CPU-only) via custom index + CPU requirements
     - GPU path: All dependencies from GPU requirements file
-11. Configures `direnv` to activate the venv automatically in `~/cs580`
-12. Configures Bash so the prompt shows `(cs580)` when the venv is active
-13. Configures VS Code workspace settings and opens `~/cs580`
-14. Verifies installation via import test and GPU-aware checks
+11. Configures VS Code workspace settings and opens `~/cs580`
+12. Verifies installation via import test and GPU-aware checks
 
 Assumptions
 -----------
@@ -89,12 +85,13 @@ Assumptions
 Notes
 -----
 - The virtual environment is created in `~/cs580/.venv`
-- The activated prompt displays as `(cs580)`
-- All user-level configurations (Git, venv, direnv, VS Code profile usage)
+- The activated prompt displays as `(cs580)` when the venv is activated manually
+- All user-level configurations (Git, venv, VS Code profile usage)
   are owned by the invoking user
 - System packages are installed via sudo and may prompt for a password
 - PyTorch CPU wheels require a custom index and are installed separately
-- `direnv` auto-activation applies in `~/cs580` and its subdirectories
+- To activate the virtual environment manually, run:
+  `source ~/cs580/.venv/bin/activate`
 
 Exit Behavior
 -------------
@@ -208,7 +205,6 @@ install_common_tools() {
     build-essential \
     bzip2 \
     curl \
-    direnv \
     git \
     gzip \
     p7zip-full \
@@ -311,53 +307,6 @@ set_cuda_paths() {
   fi
 }
 
-configure_direnv() {
-  echo ">> Configuring direnv for automatic venv activation..."
-
-  if ! grep -Fq 'eval "$(direnv hook bash)"' "$HOME/.bashrc"; then
-    {
-      echo ""
-      echo "# Added by setup_cs580.sh for CS 580 auto-activation"
-      echo 'eval "$(direnv hook bash)"'
-    } >> "$HOME/.bashrc"
-    echo ">> Added direnv hook to ~/.bashrc"
-  else
-    echo ">> direnv hook already present in ~/.bashrc"
-  fi
-
-  if ! grep -Fq '# Added by setup_cs580.sh for CS 580 direnv prompt integration' "$HOME/.bashrc"; then
-    cat >> "$HOME/.bashrc" <<'EOF'
-
-# Added by setup_cs580.sh for CS 580 direnv prompt integration
-if [[ -z "${ORIGINAL_PS1:-}" ]]; then
-  ORIGINAL_PS1="$PS1"
-fi
-
-update_direnv_prompt() {
-  local base_ps1='\u@\h:\w\$ '
-  if [[ -n "${VIRTUAL_ENV_PROMPT:-}" ]]; then
-    PS1="(${VIRTUAL_ENV_PROMPT}) ${base_ps1}"
-  else
-    PS1="${base_ps1}"
-  fi
-}
-
-PROMPT_COMMAND="update_direnv_prompt${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
-EOF
-    echo ">> Added direnv prompt integration to ~/.bashrc"
-  else
-    echo ">> direnv prompt integration already present in ~/.bashrc"
-  fi
-
-  cat > "$BASE_DIR/.envrc" <<EOF
-source "$BASE_DIR/.venv/bin/activate"
-EOF
-
-  echo ">> Allowing direnv in $BASE_DIR..."
-  cd "$BASE_DIR"
-  direnv allow
-}
-
 configure_vscode() {
   echo ">> Configuring VS Code workspace settings..."
 
@@ -437,11 +386,10 @@ create_dir_structure
 create_venv
 setup_venv
 set_cuda_paths
-configure_direnv
 configure_vscode
 verify_venv
 
 echo "✅ CS 580 WSL environment setup complete!"
-echo ">> Open a new terminal, or run: source ~/.bashrc"
-echo ">> Then cd ~/$CRS_ID to auto-activate the CS 580 virtual environment."
-echo ">> Install any desired VS Code extensions manually after setup."
+echo ">> To activate the CS 580 virtual environment manually, run:"
+echo ">> source ~/$CRS_ID/.venv/bin/activate"
+echo ">> VS Code workspace settings have been configured for '$CRS_ID'."

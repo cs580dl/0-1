@@ -9,6 +9,9 @@ These instructions will guide you through setting up a WSL 2 environment on Wind
   - [Install VS Code in Windows](#install-vs-code-in-windows)
   - [Install WSL 2](#install-wsl-2)
   - [Setup Ubuntu-mscs](#setup-ubuntu-mscs)
+    - [⚠️ Note on Installation Errors (Pip / Network Issues)](#️-note-on-installation-errors-pip--network-issues)
+      - [✅ What to do](#-what-to-do)
+      - [💡 Tip](#-tip)
 
 ## Verify Prerequisites
 
@@ -88,3 +91,38 @@ curl -fsSL -o setup_cs580.sh https://raw.githubusercontent.com/cs580dl/0-1/refs/
 chmod +x setup_cs580.sh
 ./setup_cs580.sh your-GitHub-username your-GitHub-email
 ```
+Here’s a clear, student-friendly note you can drop into your `README.md`:
+
+---
+
+### ⚠️ Note on Installation Errors (Pip / Network Issues)
+
+During setup, the script installs several large machine learning libraries (including GPU-related packages). Occasionally, you may see an error like:
+
+```
+ssl.SSLError: [SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC]
+```
+
+or a failed download partway through installation.
+
+**This is usually a temporary network issue—not a problem with your setup or the script.**
+
+#### ✅ What to do
+
+* Simply **run the setup script again**:
+
+  ```bash
+  ./setup_cs580.sh
+  ```
+* The script is safe to re-run and will continue installing anything that did not complete successfully.
+
+#### 💡 Tip
+
+* Make sure you have a stable internet connection.
+* If the error happens multiple times, wait a minute or two and try again.
+
+---
+
+If you continue to have issues after several attempts, reach out in the course **General Questions** discussion forum or repository **Issues** with a screenshot of the error.
+
+---

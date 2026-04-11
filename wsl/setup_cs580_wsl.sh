@@ -53,7 +53,7 @@ Behavior
 --------
 1. Verifies script is not run as root
 2. Confirms sudo access
-3. Detects GPU availability
+3. Detects GPU availability once and stores the result
 4. Updates system packages and installs dependencies
 5. Installs Python and pip
 6. Prompts user for Git configuration
@@ -62,7 +62,7 @@ Behavior
    - CPU path: PyTorch (CPU-only) via custom index + CPU requirements
    - GPU path: All dependencies from GPU requirements file
 9. Creates a course directory structure
-10. Verifies installation via import test
+10. Verifies installation via import test and GPU-aware checks
 
 Assumptions
 -----------
@@ -94,6 +94,10 @@ REPO="https://raw.githubusercontent.com/cs580dl/0-1/refs/heads/main/wsl/"
 CPU_REQS="requirements_cpu.txt"
 GPU_REQS="requirements_gpu.txt"
 
+# === Script State ===
+HAS_GPU="false"
+REQS_FILE=""
+
 # === Define Script Functions ===
 check_not_root() {
   if [[ "$(id -u)" -eq 0 ]]; then
@@ -108,13 +112,15 @@ check_sudo_access() {
   sudo -v
 }
 
-has_gpu() {
+detect_gpu() {
   if command -v nvidia-smi &>/dev/null; then
+    HAS_GPU="true"
+    REQS_FILE="$GPU_REQS"
     echo ">> NVIDIA GPU detected. Setting up GPU environment..."
-    return 0
   else
+    HAS_GPU="false"
+    REQS_FILE="$CPU_REQS"
     echo ">> No NVIDIA GPU detected. Setting up CPU environment..."
-    return 1
   fi
 }
 
@@ -184,16 +190,16 @@ setup_venv() {
   echo ">> Upgrading pip in virtual environment..."
   python -m pip install --upgrade pip
 
-  if [[ "$reqs_file" == "$CPU_REQS" ]]; then
+  if [[ "$HAS_GPU" == "false" ]]; then
     echo ">> Installing CPU-only PyTorch..."
     python -m pip install torch torchvision \
       --index-url https://download.pytorch.org/whl/cpu
   fi
 
-  echo ">> Downloading Python dependencies from ${REPO}${reqs_file}..."
-  curl -fsSL "${REPO}${reqs_file}" -o /tmp/requirements.txt
+  echo ">> Downloading Python dependencies from ${REPO}${REQS_FILE}..."
+  curl -fsSL "${REPO}${REQS_FILE}" -o /tmp/requirements.txt
 
-  echo ">> Installing Python dependencies from ${reqs_file}..."
+  echo ">> Installing Python dependencies from ${REQS_FILE}..."
   python -m pip install -r /tmp/requirements.txt
 
   rm -f /tmp/requirements.txt
@@ -202,22 +208,55 @@ setup_venv() {
 create_dir_structure() {
   echo ">> Creating directory structure..."
   mkdir -p cs580
+  cd cs580
+  git clone --depth 1 https://github.com/cs580dl/0-0.git
 }
 
 verify_venv() {
   echo ">> Verifying virtual environment setup..."
-  python -c "import transformers; import datasets; import sklearn; import torch; import tensorflow; print('All imports successful!')"
+
+  if [[ "$HAS_GPU" == "true" ]]; then
+    python -c "
+import transformers
+import datasets
+import sklearn
+import torch
+import tensorflow as tf
+
+print('All imports successful!')
+print(f'PyTorch version: {torch.__version__}')
+print(f'TensorFlow version: {tf.__version__}')
+print(f'PyTorch CUDA available: {torch.cuda.is_available()}')
+print(f'TensorFlow GPUs detected: {len(tf.config.list_physical_devices(\"GPU\"))}')
+
+if not torch.cuda.is_available():
+    raise SystemExit('Expected GPU setup, but PyTorch CUDA is not available.')
+
+if len(tf.config.list_physical_devices('GPU')) == 0:
+    raise SystemExit('Expected GPU setup, but TensorFlow did not detect a GPU.')
+"
+  else
+    python -c "
+import transformers
+import datasets
+import sklearn
+import torch
+import tensorflow as tf
+
+print('All imports successful!')
+print(f'PyTorch version: {torch.__version__}')
+print(f'TensorFlow version: {tf.__version__}')
+print(f'PyTorch CUDA available: {torch.cuda.is_available()}')
+print(f'TensorFlow GPUs detected: {len(tf.config.list_physical_devices(\"GPU\"))}')
+print('CPU environment verification complete.')
+"
+  fi
 }
 
 # === Main Script Execution ===
 check_not_root
 check_sudo_access
-
-if has_gpu; then
-  reqs_file="$GPU_REQS"
-else
-  reqs_file="$CPU_REQS"
-fi
+detect_gpu
 
 update_system
 install_common_tools
@@ -227,6 +266,5 @@ create_venv
 setup_venv
 create_dir_structure
 verify_venv
-cd cs580
 
 echo "✅ CS 580 WSL environment setup complete!"

@@ -1,0 +1,15 @@
+tensorflow
+transformers
+datasets
+scikit-learn
+numpy
+pandas
+matplotlib
+seaborn
+tensorflow-datasets
+jupyterlab
+notebook
+ipykernel
+ipywidgets
+# TODO: Install torch and torchvision separately in cs580 venv with
+# pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu

@@ -68,29 +68,14 @@ wsl.exe --set-default Ubuntu24-mscs
 ## Setup Ubuntu-mscs
 
 1. Launch **Ubuntu-mscs** from the Start menu (or type `wsl.exe -d Ubuntu-mscs` in PowerShell).
+
 2. Enter the following commands to download and run the CS 580 setup script:
 
 ```bash
-curl -o setup_cs580.sh https://raw.githubusercontent.com/cs580dl/0-1/refs/heads/main/wsl/setup_cs580_wsl.sh
+curl -fsSL -o setup_cs580.sh https://raw.githubusercontent.com/cs580dl/0-1/refs/heads/main/wsl/setup_cs580_wsl.sh
+
 chmod +x setup_cs580.sh
-./setup_cs580.sh
+
+sudo ./setup_cs580.sh
 ```
-
-## Verify Installation
-
-Run these commands inside your **WSL / Ubuntu terminal** and confirm each prints a version string:
-
-```bash
-git --version
-python3 --version
-pip3 --version
-docker --version
-```
-
 # Scratchpad
-
-If you are uncertain whether you have a GPU, open **Device Manager** (search in Start menu) and expand the **Display adapters** section. If you see an NVIDIA product listed, you mostly likely have a GPU. If there is a warning icon next to it, you may need to update the driver. If not, you will need to use the CPU-only setup instructions in [win/README.md](win/README.md).
-
-If the command is not recognized, double check that you have an NVIDIA GPU and driver installed. Open **Device Manager** (search in Start menu) and expand the **Display adapters** section. If you see an NVIDIA product listed, you most likely have a GPU, but .
-
-or if the driver version is older than 528.33, you will need to install a recent NVIDIA  driver for your GPU. Follow these steps:

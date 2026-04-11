@@ -19,7 +19,8 @@ Features
 - Selects CPU or GPU dependency set automatically
 - Installs specified Python version and common development tools
 - Configures Git global username and email
-- Creates a virtual environment in `~/cs580/cs580`
+- Creates a virtual environment in `~/cs580/.venv`
+- Uses `cs580` as the displayed virtual environment prompt name
 - Installs dependencies from remote requirements files
 - Installs CPU-only PyTorch separately when no GPU is detected
 - Configures `direnv` to auto-activate/deactivate the venv in `~/cs580`
@@ -48,13 +49,12 @@ Do NOT run this script with sudo.
 
 Configuration
 -------------
-- PY_VER: Python version to install (default: 3.12)
-- VENV_NAME: Name of the virtual environment directory
+- CRS_ID: Course ID used for the course folder, venv prompt, and VS Code profile
+- PY_VER: Python version to install
 - BASE_DIR: Root course directory created in the user's home directory
 - REPO: Base URL for remote requirements files
 - CPU_REQS: Requirements file for CPU-only setup
 - GPU_REQS: Requirements file for GPU-enabled setup
-- VSCODE_PROFILE: Name of the VS Code profile used for the course
 
 Behavior
 --------
@@ -65,7 +65,7 @@ Behavior
 5. Installs Python and pip
 6. Prompts user for Git configuration
 7. Creates `~/cs580` and clones starter repo `0-0`
-8. Creates a virtual environment in `~/cs580/cs580`
+8. Creates a virtual environment in `~/cs580/.venv`
 9. Installs:
    - CPU path: PyTorch (CPU-only) via custom index + CPU requirements
    - GPU path: All dependencies from GPU requirements file
@@ -82,7 +82,8 @@ Assumptions
 
 Notes
 -----
-- The virtual environment is created in `~/cs580/cs580`
+- The virtual environment is created in `~/cs580/.venv`
+- The activated prompt displays as `(cs580)`
 - All user-level configurations (Git, venv, direnv, VS Code profile usage)
   are owned by the invoking user
 - System packages are installed via sudo and may prompt for a password
@@ -102,10 +103,9 @@ DOC
 set -euo pipefail
 
 # === Script Constants ===
+CRS_ID="cs580"
 PY_VER="3.12"
-VENV_NAME="cs580"
-BASE_DIR="$HOME/cs580"
-VSCODE_PROFILE="cs580"
+BASE_DIR="$HOME/$CRS_ID"
 
 REPO="https://raw.githubusercontent.com/cs580dl/0-1/refs/heads/main/wsl/"
 CPU_REQS="requirements_cpu.txt"
@@ -209,13 +209,13 @@ create_dir_structure() {
 }
 
 create_venv() {
-  echo ">> Creating virtual environment in $BASE_DIR/$VENV_NAME..."
+  echo ">> Creating virtual environment in $BASE_DIR/.venv..."
   cd "$BASE_DIR"
-  "python${PY_VER}" -m venv "$VENV_NAME"
+  "python${PY_VER}" -m venv --prompt "$CRS_ID" .venv
 
   echo ">> Activating virtual environment..."
   # shellcheck disable=SC1091
-  source "$BASE_DIR/$VENV_NAME/bin/activate"
+  source "$BASE_DIR/.venv/bin/activate"
 }
 
 setup_venv() {
@@ -268,7 +268,7 @@ configure_direnv() {
   fi
 
   cat > "$BASE_DIR/.envrc" <<EOF
-source "$BASE_DIR/$VENV_NAME/bin/activate"
+source "$BASE_DIR/.venv/bin/activate"
 EOF
 
   echo ">> Allowing direnv in $BASE_DIR..."
@@ -290,27 +290,27 @@ configure_vscode() {
 
   cat > "$BASE_DIR/.vscode/settings.json" <<EOF
 {
-  "python.defaultInterpreterPath": "\${workspaceFolder}/${VENV_NAME}/bin/python",
+  "python.defaultInterpreterPath": "\${workspaceFolder}/.venv/bin/python",
   "python.terminal.activateEnvironment": true,
   "jupyter.notebookFileRoot": "\${workspaceFolder}"
 }
 EOF
 
-  echo ">> Opening VS Code in $BASE_DIR with profile '$VSCODE_PROFILE'..."
-  code --profile "$VSCODE_PROFILE" "$BASE_DIR"
+  echo ">> Opening VS Code in $BASE_DIR with profile '$CRS_ID'..."
+  code --profile "$CRS_ID" "$BASE_DIR"
 
-  echo ">> Installing VS Code extensions into profile '$VSCODE_PROFILE'..."
-  code --profile "$VSCODE_PROFILE" --install-extension ms-vscode-remote.remote-wsl
-  code --profile "$VSCODE_PROFILE" --install-extension ms-vscode-remote.remote-wsl-recommender
-  code --profile "$VSCODE_PROFILE" --install-extension ms-python.python
-  code --profile "$VSCODE_PROFILE" --install-extension ms-python.autopep8
-  code --profile "$VSCODE_PROFILE" --install-extension ms-toolsai.jupyter
-  code --profile "$VSCODE_PROFILE" --install-extension ms-toolsai.datawrangler
-  code --profile "$VSCODE_PROFILE" --install-extension mechatroner.rainbow-csv
-  code --profile "$VSCODE_PROFILE" --install-extension bierner.github-markdown-preview
-  code --profile "$VSCODE_PROFILE" --install-extension streetsidesoftware.code-spell-checker
-  code --profile "$VSCODE_PROFILE" --install-extension hediet.vscode-drawio
-  code --profile "$VSCODE_PROFILE" --install-extension tomoki1207.pdf
+  echo ">> Installing VS Code extensions into profile '$CRS_ID'..."
+  code --profile "$CRS_ID" --install-extension ms-vscode-remote.remote-wsl
+  code --profile "$CRS_ID" --install-extension ms-vscode-remote.remote-wsl-recommender
+  code --profile "$CRS_ID" --install-extension ms-python.python
+  code --profile "$CRS_ID" --install-extension ms-python.autopep8
+  code --profile "$CRS_ID" --install-extension ms-toolsai.jupyter
+  code --profile "$CRS_ID" --install-extension ms-toolsai.datawrangler
+  code --profile "$CRS_ID" --install-extension mechatroner.rainbow-csv
+  code --profile "$CRS_ID" --install-extension bierner.github-markdown-preview
+  code --profile "$CRS_ID" --install-extension streetsidesoftware.code-spell-checker
+  code --profile "$CRS_ID" --install-extension hediet.vscode-drawio
+  code --profile "$CRS_ID" --install-extension tomoki1207.pdf
 }
 
 verify_venv() {
@@ -373,5 +373,5 @@ verify_venv
 
 echo "✅ CS 580 WSL environment setup complete!"
 echo ">> Open a new terminal, or run: source ~/.bashrc"
-echo ">> Then cd ~/cs580 to auto-activate the CS 580 virtual environment."
-echo ">> VS Code has been configured to use the '$VSCODE_PROFILE' profile for CS 580."
+echo ">> Then cd ~/$CRS_ID to auto-activate the course virtual environment."
+echo ">> VS Code has been configured to use the '$CRS_ID' profile."

@@ -35,3 +35,7 @@ Follow the guide for your operating platform to set up your deep learning enviro
 ## Need Help?
 
 If you are CS 580 student, open an issue in this repository or post in the course General Questions discussion board.
+
+## Use of Artificial Intelligence (AI) to Generate Content
+
+This supplemental course resource contains content created with the help of AI tools. AI-generated content has been thoroughly vetted by course instructor. Revisions have been made to ensure accuracy and clarity.

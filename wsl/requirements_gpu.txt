@@ -9,6 +9,7 @@ pandas
 matplotlib
 seaborn
 tensorflow-datasets
+tensorflow_hub
 jupyterlab
 notebook
 ipykernel

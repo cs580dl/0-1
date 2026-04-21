@@ -1,4 +1,6 @@
-tensorflow
+tensorflow>=2.0.0
+tensorflow-datasets
+tensorflow_hub
 transformers
 datasets
 scikit-learn
@@ -6,8 +8,6 @@ numpy
 pandas
 matplotlib
 seaborn
-tensorflow-datasets
-tensorflow_hub
 jupyterlab
 notebook
 ipykernel
